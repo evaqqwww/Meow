@@ -2,6 +2,7 @@ import { createInteraction, WAIT_DURATION_MS, ANIMATION_DURATION_MS, HOLD_DURATI
 import { createMeowPlayer } from './meow-audio.js';
 import { createBackgroundMusic } from './background-music.js';
 
+const SHOW_BLESSING = false;
 const app = createInteraction();
 const $ = (id) => document.getElementById(id);
 const scene = $('scene');
@@ -44,7 +45,7 @@ function render() {
   }
   if (replyText !== previousReply) {
     previousReply = replyText;
-    $('speech').hidden = !replyText;
+    $('speech').hidden = !SHOW_BLESSING || !replyText;
     $('speech-text').textContent = replyText;
     if (replyText) meows.playRandom();
   }

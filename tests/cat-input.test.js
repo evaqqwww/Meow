@@ -225,6 +225,8 @@ test('meows once on an accepted cat click and once on a completed high five', { 
   await settle();
   assert.equal(f.phase(), 'reply');
   assert.equal(f.sounds.length, 2);
+  assert.equal(f.element('speech').hidden, true, 'the blessing bubble is temporarily hidden');
+  assert.ok(f.element('speech-text').textContent, 'the reply timing and sound still use the generated blessing');
   f.advance(2400);
   f.pawPointer('pointerup');
   f.advance(3400);
