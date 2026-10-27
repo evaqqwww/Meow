@@ -7,10 +7,11 @@ const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
 let fixtureNumber = 0;
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
-async function fixture(t, { reducedMotion = false, audio = false } = {}) {
+async function fixture(t, { reducedMotion = false, audio = false, music = false } = {}) {
   const animations = [];
   const effects = [];
   const sounds = [];
+  const musicEvents = [];
   const callbacks = new Map();
   let time = 0;
   let nextFrame = 0;
@@ -38,6 +39,12 @@ async function fixture(t, { reducedMotion = false, audio = false } = {}) {
       this.value = '';
       this.open = false;
       this.attributes = new Map();
+      if (music && id === 'background-music') {
+        this.paused = true;
+        this.currentTime = 0;
+        this.play = () => { musicEvents.push('play'); this.paused = false; return Promise.resolve(); };
+        this.pause = () => { musicEvents.push('pause'); this.paused = true; };
+      }
     }
     setAttribute(name, value) { this.attributes.set(name, value); }
     focus() { document.activeElement = this; effects.push(`${this.id}:focus`); }
@@ -91,7 +98,7 @@ async function fixture(t, { reducedMotion = false, audio = false } = {}) {
   await import(url.href);
 
   return {
-    animations, effects, sounds, document, window,
+    animations, effects, sounds, musicEvents, document, window,
     element: (id) => elements.get(id),
     phase: () => elements.get('scene').dataset.phase,
     clickCat: () => elements.get('cat-button').dispatchEvent(new Event('click')),
@@ -238,4 +245,40 @@ test('plays the completion meow when release crosses the deadline between render
   await settle();
   assert.equal(f.phase(), 'returning');
   assert.equal(f.sounds.length, 2, 'completion is audible even if the reply phase was skipped by release');
+});
+
+test('background music starts on page interaction, coexists with meows, and resumes after hiding', { concurrency: false }, async (t) => {
+  const f = await fixture(t, { audio: true, music: true });
+  const music = f.element('background-music');
+  assert.ok(music, 'the page needs its looping background audio element');
+  f.document.dispatchEvent(new Event('visibilitychange'));
+  await settle();
+  assert.deepEqual(f.musicEvents, [], 'opening or returning to an untouched page must stay silent');
+  f.document.dispatchEvent(new Event('click'));
+  await settle();
+  assert.equal(music.loop, true);
+  assert.equal(music.paused, false);
+  assert.deepEqual(f.musicEvents, ['play']);
+  music.currentTime = 12;
+  f.document.dispatchEvent(new Event('click'));
+  f.clickCat();
+  f.animations[0].finish();
+  await settle();
+  f.submit('愿你平安喜乐');
+  f.pawPointer('pointerdown');
+  f.advance(1800);
+  await settle();
+  assert.equal(f.sounds.length, 2, 'the click and high-five meows must still play');
+  assert.deepEqual(f.musicEvents, ['play'], 'cat sounds must not restart or replace the music');
+  assert.equal(music.currentTime, 12);
+  f.document.hidden = true;
+  f.document.dispatchEvent(new Event('visibilitychange'));
+  assert.equal(music.paused, true);
+  assert.equal(music.currentTime, 12);
+  f.document.hidden = false;
+  f.document.dispatchEvent(new Event('visibilitychange'));
+  await settle();
+  assert.equal(music.paused, false);
+  assert.deepEqual(f.musicEvents, ['play', 'pause', 'play']);
+  assert.equal(music.currentTime, 12, 'returning should continue the same track position');
 });

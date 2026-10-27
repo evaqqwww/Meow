@@ -1,5 +1,6 @@
 import { createInteraction, WAIT_DURATION_MS, ANIMATION_DURATION_MS, HOLD_DURATION_MS } from './interaction.js';
 import { createMeowPlayer } from './meow-audio.js';
+import { createBackgroundMusic } from './background-music.js';
 
 const app = createInteraction();
 const $ = (id) => document.getElementById(id);
@@ -10,6 +11,7 @@ const paw = $('paw-button');
 paw.setAttribute('aria-label', `连续按住肉垫${HOLD_DURATION_MS / 1000}秒，听小猫说话`);
 const dialog = $('message-dialog');
 const input = $('message-input');
+const backgroundMusic = createBackgroundMusic($('background-music'));
 const meows = createMeowPlayer({
   sources: Array.from({ length: 8 }, (_, index) => new URL(`./assets/audio/meow_${String(index + 1).padStart(2, '0')}_clean.mp3`, import.meta.url).href),
   AudioContext: window.AudioContext || window.webkitAudioContext,
@@ -208,8 +210,16 @@ paw.addEventListener('keydown', (event) => {
 paw.addEventListener('keyup', (event) => { if (event.key === activeKey) { event.preventDefault(); endHold(); } });
 paw.addEventListener('blur', () => { if (activeKey !== null) cancelHold(); });
 window.addEventListener('blur', () => { cancelInputOpening(); cancelHold(); });
+function startBackgroundMusic() {
+  if (!document.hidden) backgroundMusic.start();
+}
+document.addEventListener('click', startBackgroundMusic, { capture: true });
+document.addEventListener('keydown', (event) => {
+  if (!event.repeat && ['Enter', ' '].includes(event.key)) startBackgroundMusic();
+}, { capture: true });
+
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { meows.stop(); cancelInputOpening(); cancelHold(); }
-  else { app.tick(); render(); scheduleAnimation(); }
+  if (document.hidden) { backgroundMusic.pause(); meows.stop(); cancelInputOpening(); cancelHold(); }
+  else { backgroundMusic.resume(); app.tick(); render(); scheduleAnimation(); }
 });
 render();
