@@ -43,10 +43,6 @@ function render() {
   catButton.disabled = ['holding', 'reply', 'returning'].includes(phase);
   paw.disabled = phase === 'returning';
   $('paw-wrap').hidden = !['ready', 'holding', 'reply', 'returning'].includes(phase);
-  $('cat-invitation').hidden = phase !== 'idle';
-  $('step-1').classList.toggle('is-active', ['idle', 'editing'].includes(phase));
-  $('step-2').classList.toggle('is-active', ['ready', 'holding'].includes(phase));
-  $('step-3').classList.toggle('is-active', ['reply', 'returning'].includes(phase));
   const hints = {
     idle: '点点小猫，把心里的话轻轻放下。',
     editing: '不着急，小猫在认真听。',

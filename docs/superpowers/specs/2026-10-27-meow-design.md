@@ -1,5 +1,7 @@
 # Meow mobile interaction
 
+Visual layout (updated at the user's request): remove decorative page headings, brand text, stamp, cat invitation, step guide and footer. Fill the viewport with the existing paper color #f9f6ef, center the temple in both axes, and enlarge the centered cat in front. Blend the white temple image against a solid paper backdrop. Show the paw and progress ring without visible instructional labels; retain accessible descriptions and status announcements. Keep the input dialog and blessing visible when used. Fit controls and speech within portrait and short landscape viewports.
+
 Build the user's specified cat/temple interaction as a Chinese mobile-first static web app, then upload it to the GitHub repository `Meow` and publish GitHub Pages. The cat now uses the user's supplied five-frame PNG sequence, copied without modification; retain the four original PNG assets as well.
 
 The supplied temple is the background. The first sequence frame is the default cat. Tapping the cat opens a text-entry sheet and the phone keyboard. Confirming a nonempty message reveals the supplied pink paw beside the cat. During an uninterrupted 1800 ms hold, keep frame 0 through the first 1000 ms, then play the five frames forward over 800 ms, advancing one frame every 200 ms. At elapsed 0/1000 ms show frame 0; at 1200/1400/1600/1800 ms show frames 1/2/3/4 respectively. Reaching 1800 ms triggers one blessing for 1000 ms. Keep the cat on frame 4 for as long as the paw remains held, including after the speech disappears.

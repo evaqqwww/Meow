@@ -17,46 +17,28 @@
   </head>
   <body>
     <div class="page">
-      <header class="masthead">
-        <a class="brand" href="./" aria-label="喵有回音首页"><img src="./assets/paw.png" alt="" width="28" height="28" /><span>喵有回音</span><span class="brand-en">MEOW</span></a>
-        <span class="quiet-note"><span></span>片刻，留给自己</span>
-      </header>
-
-      <main class="sanctuary" aria-labelledby="page-title">
-        <div class="introduction">
-          <p class="eyebrow">A LITTLE MOMENT OF PEACE</p>
-          <h1 id="page-title">有些话，<br class="mobile-break" />说给小猫听。</h1>
-          <p class="intro-copy">山间无事，猫在等你。</p>
-        </div>
-
+      <main class="sanctuary" aria-label="小猫与寺庙互动场景">
         <div class="scene" id="scene" data-phase="idle">
           <img class="temple" src="./assets/temple.png" alt="水彩画中的安静寺庙与香炉" draggable="false" />
-          <span class="scene-stamp" aria-hidden="true">一期<br />一会</span>
           <div class="cat-area">
-            <div class="speech" id="speech" role="status" aria-live="polite" hidden><p id="speech-text"></p><span class="speech-signature">小猫的回音</span></div>
+            <div class="speech" id="speech" role="status" aria-live="polite" hidden><p id="speech-text"></p></div>
             <span class="cat-shadow" aria-hidden="true"></span>
             <button class="cat-button" id="cat-button" type="button" aria-label="点击小猫，输入想说的话" aria-haspopup="dialog">
               <img id="cat-image" class="cat-image" src="./assets/cat-frames/frame-01-start.png" alt="闭着眼睛休息的三花小猫" width="490" height="490" draggable="false" />
             </button>
-            <span class="cat-invitation" id="cat-invitation" aria-hidden="true"><span>轻点我，说句话</span><span class="tiny-arrow">↗</span></span>
             <div class="paw-wrap" id="paw-wrap" hidden>
               <button id="paw-button" class="paw-button" type="button" aria-label="连续按住肉垫1.8秒，听小猫说话" aria-describedby="paw-label">
                 <svg class="hold-ring" viewBox="0 0 112 112" aria-hidden="true"><circle class="ring-track" cx="56" cy="56" r="51" /><circle class="ring-progress" id="ring-progress" cx="56" cy="56" r="51" pathLength="1" /></svg>
                 <img src="./assets/paw.png" alt="粉色猫咪肉垫" width="128" height="128" draggable="false" />
               </button>
-              <span class="paw-label" id="paw-label">按住肉垫 1.8 秒</span>
-              <span class="paw-subtitle" id="paw-subtitle">给小猫一点时间</span>
+              <span class="visually-hidden" id="paw-label">按住肉垫 1.8 秒</span>
+              <span class="visually-hidden" id="paw-subtitle">给小猫一点时间</span>
             </div>
           </div>
         </div>
 
-        <div class="interaction-guide">
-          <p class="guide-text" id="guide-text" role="status" aria-live="polite">点点小猫，把心里的话轻轻放下。</p>
-          <ol class="steps" aria-label="互动步骤"><li class="is-active" id="step-1"><span>01</span>说句话</li><li class="step-line" aria-hidden="true"></li><li id="step-2"><span>02</span>按按肉垫</li><li class="step-line" aria-hidden="true"></li><li id="step-3"><span>03</span>等个回音</li></ol>
-        </div>
+        <p class="visually-hidden" id="guide-text" role="status" aria-live="polite"></p>
       </main>
-
-      <footer class="footer"><span>一只小猫，一点心安。</span><span class="footer-mark">慢慢来，喵。</span></footer>
     </div>
 
     <dialog class="message-dialog" id="message-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
