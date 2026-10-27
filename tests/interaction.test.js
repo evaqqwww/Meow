@@ -6,7 +6,7 @@ import { BLESSINGS } from '../site/blessings.js';
 function setup({ random = () => 0 } = {}) {
   let time = 0;
   const interaction = createInteraction({ now: () => time, random });
-  return { interaction, setTime: (value) => { time = value; }, at: (value) => { time = value; return interaction.tick(); } };
+  return { interaction, setTime: (value) => { time = value; }, at: (value) => { time = value; interaction.tick(); } };
 }
 function prepare(app, text = '今天也要开心') { app.openInput(); app.confirmInput(text); }
 
@@ -75,19 +75,10 @@ test('releasing a completed hold reverses all five frames in 800 ms then resets'
   assert.deepEqual(app.state, { phase: 'idle', text: '', replyText: '', progress: 0, frameIndex: 0 });
 });
 
-test('the blessing keeps its original lifetime when released just after completion', () => {
-  const { interaction: app, at } = setup(); prepare(app); app.beginHold(); at(1800); app.endHold();
-  const blessing = app.state.replyText;
-  at(2600); assert.equal(app.state.frameIndex, 0); assert.equal(app.state.phase, 'returning');
-  assert.equal(app.state.replyText, blessing);
-  at(2799); assert.equal(app.state.replyText, blessing);
-  at(2800); assert.equal(app.state.replyText, ''); assert.equal(app.state.phase, 'idle');
-});
-
 test('release after 1800 ms completes even between animation frames', () => {
   const { interaction: app, at, setTime } = setup(); prepare(app); app.beginHold(); at(1795); setTime(1801); app.endHold();
   assert.equal(app.state.phase, 'returning'); assert.equal(app.state.frameIndex, 4); assert.ok(app.state.replyText);
-  at(2601); assert.equal(app.state.frameIndex, 0);
+  at(2601); assert.equal(app.state.frameIndex, 0); assert.equal(app.state.phase, 'returning');
   at(2800); assert.ok(app.state.replyText);
   at(2801); assert.equal(app.state.replyText, ''); assert.equal(app.state.phase, 'idle');
 });
@@ -116,4 +107,20 @@ test('repeated holds cannot restart a cycle and a later cycle draws a new blessi
   app.endHold(); at(2800);
   prepare(app, '第二段话'); app.beginHold(); at(4600);
   assert.equal(draws, 2); assert.notEqual(app.state.replyText, first);
+});
+
+test('completed interactions can draw every blessing except the submitted text', () => {
+  for (const text of ['一段心事', ...BLESSINGS]) {
+    const expected = new Set(BLESSINGS);
+    expected.delete(text);
+    const draws = new Set();
+    const samples = [0, 1 - Number.EPSILON, ...Array.from({ length: expected.size }, (_, index) => (index + .5) / expected.size)];
+    for (const sample of samples) {
+      const { interaction: app, at } = setup({ random: () => sample });
+      prepare(app, text); app.beginHold(); at(1800);
+      assert.notEqual(app.state.replyText, text);
+      draws.add(app.state.replyText);
+    }
+    assert.deepEqual(draws, expected);
+  }
 });

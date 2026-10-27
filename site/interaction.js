@@ -38,7 +38,6 @@ export function createInteraction({ now = () => performance.now(), random = Math
         }
       }
     }
-    return { ...state };
   };
   const reverse = () => {
     if (!['holding', 'reply'].includes(state.phase)) return;
