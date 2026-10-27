@@ -16,7 +16,7 @@ let frame = 0;
 let previousPhase = '';
 
 function render() {
-  const { phase, text, progress } = app.state;
+  const { phase, replyText, progress } = app.state;
   scene.dataset.phase = phase;
   $('ring-progress').style.strokeDashoffset = String(1 - progress);
   if (phase === 'holding') {
@@ -29,7 +29,7 @@ function render() {
   catImage.src = responding ? replyImage : restImage;
   catImage.alt = responding ? '举起粉色肉垫回应你的三花小猫' : '闭着眼睛休息的三花小猫';
   $('speech').hidden = !responding;
-  $('speech-text').textContent = responding ? text : '';
+  $('speech-text').textContent = responding ? replyText : '';
   $('paw-wrap').hidden = !['ready', 'holding'].includes(phase);
   $('cat-invitation').hidden = phase !== 'idle';
   $('step-1').classList.toggle('is-active', ['idle', 'editing'].includes(phase));

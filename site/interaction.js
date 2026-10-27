@@ -1,5 +1,7 @@
-export function createInteraction({ now = () => performance.now() } = {}) {
-  let state = { phase: 'idle', text: '', progress: 0 };
+import { pickBlessing } from './blessings.js';
+
+export function createInteraction({ now = () => performance.now(), random = Math.random } = {}) {
+  let state = { phase: 'idle', text: '', replyText: '', progress: 0 };
   let holdStarted = 0;
   let replyStarted = 0;
   const set = (changes) => { state = { ...state, ...changes }; };
@@ -10,10 +12,10 @@ export function createInteraction({ now = () => performance.now() } = {}) {
       set({ progress });
       if (progress === 1) {
         replyStarted = time;
-        set({ phase: 'reply' });
+        set({ phase: 'reply', replyText: pickBlessing({ random, exclude: state.text }) });
       }
     } else if (state.phase === 'reply' && time - replyStarted >= 1000) {
-      state = { phase: 'idle', text: '', progress: 0 };
+      state = { phase: 'idle', text: '', replyText: '', progress: 0 };
     }
     return { ...state };
   };
