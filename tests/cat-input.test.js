@@ -7,14 +7,27 @@ const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
 let fixtureNumber = 0;
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
-async function fixture(t, { reducedMotion = false } = {}) {
+async function fixture(t, { reducedMotion = false, audio = false } = {}) {
   const animations = [];
   const effects = [];
+  const sounds = [];
+  const callbacks = new Map();
+  let time = 0;
+  let nextFrame = 0;
   const document = new EventTarget();
   document.hidden = false;
   document.activeElement = null;
   const window = new EventTarget();
   window.matchMedia = () => ({ matches: reducedMotion });
+  if (audio) window.AudioContext = class {
+    state = 'suspended';
+    destination = {};
+    resume() { this.state = 'running'; return Promise.resolve(); }
+    decodeAudioData() { return Promise.resolve({}); }
+    createBufferSource() {
+      return { connect() {}, disconnect() {}, start() { sounds.push(this); }, stop() {} };
+    }
+  };
 
   class Element extends EventTarget {
     constructor(id) {
@@ -31,6 +44,7 @@ async function fixture(t, { reducedMotion = false } = {}) {
     blur() { if (document.activeElement === this) document.activeElement = null; }
     showModal() { this.open = true; effects.push(`${this.id}:showModal`); }
     close() { this.open = false; }
+    setPointerCapture() {}
     animate(_keyframes, options) {
       let resolve;
       let reject;
@@ -51,7 +65,15 @@ async function fixture(t, { reducedMotion = false } = {}) {
 
   const elements = new Map(ids.map((id) => [id, new Element(id)]));
   document.getElementById = (id) => elements.get(id) ?? null;
-  const globals = { document, window, requestAnimationFrame: () => 1, cancelAnimationFrame: () => {} };
+  const globals = {
+    document, window,
+    requestAnimationFrame(callback) { callbacks.set(++nextFrame, callback); return nextFrame; },
+    cancelAnimationFrame(id) { callbacks.delete(id); },
+    ...(audio ? {
+      performance: { now: () => time },
+      fetch: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(1) }),
+    } : {}),
+  };
   const originals = new Map(Object.keys(globals).map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   for (const [key, value] of Object.entries(globals)) {
     Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
@@ -69,10 +91,22 @@ async function fixture(t, { reducedMotion = false } = {}) {
   await import(url.href);
 
   return {
-    animations, effects, document, window,
+    animations, effects, sounds, document, window,
     element: (id) => elements.get(id),
     phase: () => elements.get('scene').dataset.phase,
     clickCat: () => elements.get('cat-button').dispatchEvent(new Event('click')),
+    pawPointer(type) {
+      const event = new Event(type, { cancelable: true });
+      Object.assign(event, { isPrimary: true, button: 0, buttons: type === 'pointerup' ? 0 : 1, pointerId: 1 });
+      elements.get('paw-button').dispatchEvent(event);
+    },
+    advance(milliseconds, { tick = true } = {}) {
+      time = milliseconds;
+      if (!tick) return;
+      const scheduled = [...callbacks.values()];
+      callbacks.clear();
+      for (const callback of scheduled) callback();
+    },
     submit(text) {
       elements.get('message-input').value = text;
       elements.get('message-form').dispatchEvent(new Event('submit', { cancelable: true }));
@@ -153,4 +187,55 @@ test('reduced motion opens and focuses input synchronously without animating', {
   assert.equal(f.element('message-dialog').open, true);
   assert.equal(f.document.activeElement, f.element('message-input'));
   assert.equal(f.animations.length, 0);
+});
+
+test('meows once on an accepted cat click and once on a completed high five', { concurrency: false }, async (t) => {
+  const f = await fixture(t, { audio: true });
+  await settle();
+  assert.equal(f.sounds.length, 0, 'loading the page must stay silent');
+  f.clickCat();
+  await settle();
+  assert.equal(f.sounds.length, 1, 'the accepted click should meow before opening input');
+  f.clickCat();
+  await settle();
+  assert.equal(f.sounds.length, 1, 'a repeated click during the rebound is ignored');
+  f.animations[0].finish();
+  await settle();
+  f.submit('愿你平安喜乐');
+
+  f.pawPointer('pointerdown');
+  f.advance(500);
+  f.pawPointer('pointerup');
+  await settle();
+  assert.equal(f.phase(), 'ready');
+  assert.equal(f.sounds.length, 1, 'an interrupted hold must not play the completion meow');
+
+  f.pawPointer('pointerdown');
+  f.advance(2299);
+  await settle();
+  assert.equal(f.sounds.length, 1, 'the meow must wait for all 1800 ms');
+  f.advance(2300);
+  await settle();
+  assert.equal(f.phase(), 'reply');
+  assert.equal(f.sounds.length, 2);
+  f.advance(2400);
+  f.pawPointer('pointerup');
+  f.advance(3400);
+  await settle();
+  assert.equal(f.phase(), 'idle');
+  assert.equal(f.sounds.length, 2, 'holding, releasing, and reversing must not replay it');
+});
+
+test('plays the completion meow when release crosses the deadline between render frames', { concurrency: false }, async (t) => {
+  const f = await fixture(t, { audio: true });
+  f.clickCat();
+  f.animations[0].finish();
+  await settle();
+  f.submit('慢慢来，喵');
+  f.pawPointer('pointerdown');
+  f.advance(1800, { tick: false });
+  f.pawPointer('pointerup');
+  await settle();
+  assert.equal(f.phase(), 'returning');
+  assert.equal(f.sounds.length, 2, 'completion is audible even if the reply phase was skipped by release');
 });

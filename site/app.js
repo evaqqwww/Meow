@@ -1,4 +1,5 @@
 import { createInteraction, WAIT_DURATION_MS, ANIMATION_DURATION_MS, HOLD_DURATION_MS } from './interaction.js';
+import { createMeowPlayer } from './meow-audio.js';
 
 const app = createInteraction();
 const $ = (id) => document.getElementById(id);
@@ -9,6 +10,11 @@ const paw = $('paw-button');
 paw.setAttribute('aria-label', `连续按住肉垫${HOLD_DURATION_MS / 1000}秒，听小猫说话`);
 const dialog = $('message-dialog');
 const input = $('message-input');
+const meows = createMeowPlayer({
+  sources: Array.from({ length: 8 }, (_, index) => new URL(`./assets/audio/meow_${String(index + 1).padStart(2, '0')}_clean.mp3`, import.meta.url).href),
+  AudioContext: window.AudioContext || window.webkitAudioContext,
+});
+meows.preload();
 const catFrames = [
   'frame-01-start.png', 'frame-02-25pct.png', 'frame-03-50pct.png',
   'frame-04-75pct.png', 'frame-05-end.png',
@@ -38,6 +44,7 @@ function render() {
     previousReply = replyText;
     $('speech').hidden = !replyText;
     $('speech-text').textContent = replyText;
+    if (replyText) meows.playRandom();
   }
   if (phase === previousPhase) return;
   previousPhase = phase;
@@ -85,6 +92,7 @@ function scheduleAnimation() {
 
 function startHold() {
   if (!app.beginHold()) return false;
+  meows.unlock();
   render();
   scheduleAnimation();
   return true;
@@ -111,6 +119,7 @@ function cancelInputOpening() {
 
 catButton.addEventListener('click', async () => {
   if (!app.openInput()) return;
+  meows.playRandom();
   input.value = app.state.text;
   $('character-count').textContent = String(input.value.length);
   $('input-error').textContent = '';
@@ -200,7 +209,7 @@ paw.addEventListener('keyup', (event) => { if (event.key === activeKey) { event.
 paw.addEventListener('blur', () => { if (activeKey !== null) cancelHold(); });
 window.addEventListener('blur', () => { cancelInputOpening(); cancelHold(); });
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { cancelInputOpening(); cancelHold(); }
+  if (document.hidden) { meows.stop(); cancelInputOpening(); cancelHold(); }
   else { app.tick(); render(); scheduleAnimation(); }
 });
 render();
