@@ -18,7 +18,7 @@ button:disabled { cursor: default; }
 .cat-button:active:not(:disabled) { transform: scale(.98); }
 .cat-image { width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 5px 3px #a78c5c0b); }
 .cat-shadow { position: absolute; bottom: -3px; width: 88%; height: 24px; background: #aa9e7d25; filter: blur(10px); border-radius: 50%; left: 6%; z-index: -1; }
-.paw-wrap { --paw-size: 112px; --ring-size: 164px; position: absolute; left: calc(82% - var(--paw-size) / 2); top: calc(73% - var(--paw-size) / 2); display: flex; align-items: center; justify-content: center; width: var(--paw-size); }
+.paw-wrap { --paw-size: 112px; --ring-size: 164px; position: absolute; left: calc(82% - var(--paw-size) / 2); top: calc(58% - var(--paw-size) / 2); display: flex; align-items: center; justify-content: center; width: var(--paw-size); }
 .paw-button { --paw-scale: 1; position: relative; z-index: 2; background: transparent; width: var(--paw-size); height: var(--paw-size); border: 0; padding: 20px; border-radius: 50%; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; box-shadow: none; }
 .paw-button img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; animation: paw-wiggle .48s ease-in-out infinite; }
 .hold-ring { position: absolute; left: 50%; top: 50%; width: var(--ring-size); height: var(--ring-size); transform: translate(-50%, -50%) rotate(-90deg); fill: none; stroke-width: 2; pointer-events: none; opacity: 0; z-index: 4; transition: opacity .1s ease; }
