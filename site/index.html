@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f9f6ef" />
+    <meta name="description" content="寺前有只小猫，愿意听你说。留下一句话，轻按肉垫，等一个小小的回音。" />
+    <title>喵有回音 · Meow</title>
+    <link rel="icon" type="image/png" href="./assets/paw.png" />
+    <link rel="preload" href="./assets/cat-rest.png" as="image" />
+    <link rel="preload" href="./assets/cat-paw.png" as="image" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="masthead">
+        <a class="brand" href="./" aria-label="喵有回音首页"><img src="./assets/paw.png" alt="" width="28" height="28" /><span>喵有回音</span><span class="brand-en">MEOW</span></a>
+        <span class="quiet-note"><span></span>片刻，留给自己</span>
+      </header>
+
+      <main class="sanctuary" aria-labelledby="page-title">
+        <div class="introduction">
+          <p class="eyebrow">A LITTLE MOMENT OF PEACE</p>
+          <h1 id="page-title">有些话，<br class="mobile-break" />说给小猫听。</h1>
+          <p class="intro-copy">山间无事，猫在等你。</p>
+        </div>
+
+        <div class="scene" id="scene" data-phase="idle">
+          <img class="temple" src="./assets/temple.png" alt="水彩画中的安静寺庙与香炉" draggable="false" />
+          <span class="scene-stamp" aria-hidden="true">一期<br />一会</span>
+          <div class="cat-area">
+            <div class="speech" id="speech" role="status" aria-live="polite" hidden><p id="speech-text"></p><span class="speech-signature">小猫的回音</span></div>
+            <span class="cat-shadow" aria-hidden="true"></span>
+            <button class="cat-button" id="cat-button" type="button" aria-label="点击小猫，输入想说的话" aria-haspopup="dialog">
+              <img id="cat-image" class="cat-image" src="./assets/cat-rest.png" alt="闭着眼睛休息的三花小猫" width="490" height="490" draggable="false" />
+            </button>
+            <span class="cat-invitation" id="cat-invitation" aria-hidden="true"><span>轻点我，说句话</span><span class="tiny-arrow">↗</span></span>
+            <div class="paw-wrap" id="paw-wrap" hidden>
+              <button id="paw-button" class="paw-button" type="button" aria-label="连续按住肉垫3秒，听小猫说话" aria-describedby="paw-label">
+                <svg class="hold-ring" viewBox="0 0 112 112" aria-hidden="true"><circle class="ring-track" cx="56" cy="56" r="51" /><circle class="ring-progress" id="ring-progress" cx="56" cy="56" r="51" pathLength="1" /></svg>
+                <img src="./assets/paw.png" alt="粉色猫咪肉垫" width="128" height="128" draggable="false" />
+              </button>
+              <span class="paw-label" id="paw-label">按住肉垫 3 秒</span>
+              <span class="paw-subtitle" id="paw-subtitle">给小猫一点时间</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="interaction-guide">
+          <p class="guide-text" id="guide-text" role="status" aria-live="polite">点点小猫，把心里的话轻轻放下。</p>
+          <ol class="steps" aria-label="互动步骤"><li class="is-active" id="step-1"><span>01</span>说句话</li><li class="step-line" aria-hidden="true"></li><li id="step-2"><span>02</span>按按肉垫</li><li class="step-line" aria-hidden="true"></li><li id="step-3"><span>03</span>等个回音</li></ol>
+        </div>
+      </main>
+
+      <footer class="footer"><span>一只小猫，一点心安。</span><span class="footer-mark">慢慢来，喵。</span></footer>
+    </div>
+
+    <dialog class="message-dialog" id="message-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
+      <form id="message-form" novalidate>
+        <button class="close-button" id="close-dialog" type="button" aria-label="关闭输入">×</button>
+        <span class="dialog-kicker">小猫在听</span>
+        <h2 id="dialog-title">今天，想说些什么？</h2>
+        <p id="dialog-description">一句心事，一个愿望，或者只是打个招呼。</p>
+        <label class="visually-hidden" for="message-input">想对小猫说的话</label>
+        <textarea id="message-input" name="message" rows="3" maxlength="120" placeholder="比如：希望明天也有好心情。" enterkeyhint="done" required></textarea>
+        <div class="input-meta"><span id="input-error" role="alert"></span><span><span id="character-count">0</span> / 120</span></div>
+        <button class="confirm-button" type="submit">说给小猫听 <span aria-hidden="true">↗</span></button>
+        <p class="privacy-note">只在此刻，留在你和小猫之间。</p>
+      </form>
+    </dialog>
+    <noscript><p class="noscript-note">请开启 JavaScript，再来和小猫说句话。</p></noscript>
+  </body>
+</html>
