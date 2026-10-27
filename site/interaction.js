@@ -1,6 +1,6 @@
 import { pickBlessing } from './blessings.js';
 
-export const WAIT_DURATION_MS = 300;
+export const WAIT_DURATION_MS = 1000;
 export const ANIMATION_DURATION_MS = 800;
 export const HOLD_DURATION_MS = WAIT_DURATION_MS + ANIMATION_DURATION_MS;
 const FRAME_DURATION_MS = ANIMATION_DURATION_MS / 4;
