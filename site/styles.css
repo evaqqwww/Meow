@@ -11,15 +11,15 @@ button:disabled { cursor: default; }
 .page { max-width: 1440px; min-height: 100svh; margin: 0 auto; background: var(--paper); }
 .sanctuary { width: 100%; background: var(--paper); }
 .scene { position: relative; height: 100svh; min-height: 480px; overflow: hidden; isolation: isolate; background: var(--paper); }
-.temple { position: absolute; width: min(150%, 1100px); height: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); mix-blend-mode: multiply; opacity: .75; pointer-events: none; user-select: none; z-index: 0; }
-.cat-area { --cat-size: min(80vw, 400px); position: absolute; width: var(--cat-size); height: var(--cat-size); left: 50%; bottom: clamp(42px, 10svh, 100px); transform: translateX(-50%); z-index: 1; }
+.temple { position: absolute; width: min(150%, 1100px); height: auto; left: 50%; top: 43%; transform: translate(-50%, -50%); mix-blend-mode: multiply; opacity: .75; pointer-events: none; user-select: none; z-index: 0; }
+.cat-area { --cat-size: min(80vw, 400px); position: absolute; width: var(--cat-size); height: var(--cat-size); left: 45%; bottom: clamp(42px, 10svh, 100px); transform: translateX(-50%); z-index: 1; }
 .cat-button { width: 100%; height: 100%; border: 0; background: none; padding: 0; display: block; transition: transform .25s ease; touch-action: manipulation; }
 .cat-button:hover:not(:disabled) { transform: translateY(-4px); }
 .cat-button:active:not(:disabled) { transform: scale(.98); }
 .cat-image { width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 5px 3px #a78c5c0b); }
 .cat-shadow { position: absolute; bottom: -3px; width: 88%; height: 24px; background: #aa9e7d25; filter: blur(10px); border-radius: 50%; left: 6%; z-index: -1; }
-.paw-wrap { position: absolute; right: -116px; top: 58%; display: flex; align-items: center; justify-content: center; width: 100px; animation: arrive .3s ease both; }
-.paw-button { position: relative; background: #fffdf7c9; width: 94px; height: 94px; border: 0; padding: 22px; border-radius: 50%; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; box-shadow: 0 4px 22px #826b4e0c; }
+.paw-wrap { --paw-size: 94px; position: absolute; left: calc(90% + 10px); top: calc(58% - var(--paw-size) / 2); display: flex; align-items: center; justify-content: center; width: var(--paw-size); animation: arrive .3s ease both; }
+.paw-button { position: relative; background: #fffdf7c9; width: var(--paw-size); height: var(--paw-size); border: 0; padding: 22px; border-radius: 50%; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; box-shadow: 0 4px 22px #826b4e0c; }
 .paw-button img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; transition: transform .2s ease; }
 .hold-ring { position: absolute; inset: -5px; width: calc(100% + 10px); height: calc(100% + 10px); transform: rotate(-90deg); fill: none; stroke-width: 2; pointer-events: none; }
 .ring-track { stroke: #e8d9ce; stroke-dasharray: 3 5; }
@@ -51,11 +51,15 @@ textarea::placeholder { color: #b0afa1; font-size: 13px; }
 
 @media (max-width: 700px) {
   .cat-area { --cat-size: min(82vw, 360px); }
-  .paw-wrap { width: 78px; right: -10px; top: 62%; }
-  .paw-button { width: 68px; height: 68px; padding: 15px; }
+  .paw-wrap { --paw-size: 68px; left: calc(90% + 6px); }
+  .paw-button { padding: 15px; }
   .speech { max-width: 82vw; padding: 14px 18px; bottom: calc(100% + 12px); }
   .speech p { font-size: 13px; }
   .message-dialog { margin-top: auto; margin-bottom: max(16px, env(safe-area-inset-bottom)); padding: 31px 25px 20px; border-radius: 22px; }
+}
+@media (max-width: 360px) {
+  .cat-area { left: 43%; }
+  .paw-wrap { --paw-size: 64px; left: calc(90% + 4px); }
 }
 @media (max-height: 600px) and (orientation: landscape) {
   .scene { min-height: 0; }
