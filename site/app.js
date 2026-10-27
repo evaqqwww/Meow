@@ -8,44 +8,61 @@ const catImage = $('cat-image');
 const paw = $('paw-button');
 const dialog = $('message-dialog');
 const input = $('message-input');
-const restImage = new URL('./assets/cat-rest.png', import.meta.url).href;
-const replyImage = new URL('./assets/cat-paw.png', import.meta.url).href;
+const catFrames = [
+  'frame-01-start.png', 'frame-02-25pct.png', 'frame-03-50pct.png',
+  'frame-04-75pct.png', 'frame-05-end.png',
+].map((name) => new URL(`./assets/cat-frames/${name}`, import.meta.url).href);
 let activePointer = null;
 let activeKey = null;
 let frame = 0;
 let previousPhase = '';
+let previousFrame = -1;
+let previousReply = null;
 
 function render() {
-  const { phase, replyText, progress } = app.state;
+  const { phase, replyText, progress, frameIndex } = app.state;
   scene.dataset.phase = phase;
   $('ring-progress').style.strokeDashoffset = String(1 - progress);
   if (phase === 'holding') {
     $('paw-label').textContent = `再等 ${Math.ceil((1 - progress) * 3)} 秒`;
   }
+  if (frameIndex !== previousFrame) {
+    previousFrame = frameIndex;
+    catImage.src = catFrames[frameIndex];
+    catImage.alt = frameIndex === 0 ? '闭着眼睛休息的三花小猫' : frameIndex === 4 ? '举起粉色肉垫回应你的三花小猫' : '正在活动爪子的三花小猫';
+  }
+  if (replyText !== previousReply) {
+    previousReply = replyText;
+    $('speech').hidden = !replyText;
+    $('speech-text').textContent = replyText;
+  }
   if (phase === previousPhase) return;
   previousPhase = phase;
-  const responding = phase === 'reply';
-  catButton.disabled = phase === 'holding' || responding;
-  catImage.src = responding ? replyImage : restImage;
-  catImage.alt = responding ? '举起粉色肉垫回应你的三花小猫' : '闭着眼睛休息的三花小猫';
-  $('speech').hidden = !responding;
-  $('speech-text').textContent = responding ? replyText : '';
-  $('paw-wrap').hidden = !['ready', 'holding'].includes(phase);
+  catButton.disabled = ['holding', 'reply', 'returning'].includes(phase);
+  paw.disabled = phase === 'returning';
+  $('paw-wrap').hidden = !['ready', 'holding', 'reply', 'returning'].includes(phase);
   $('cat-invitation').hidden = phase !== 'idle';
   $('step-1').classList.toggle('is-active', ['idle', 'editing'].includes(phase));
   $('step-2').classList.toggle('is-active', ['ready', 'holding'].includes(phase));
-  $('step-3').classList.toggle('is-active', responding);
+  $('step-3').classList.toggle('is-active', ['reply', 'returning'].includes(phase));
   const hints = {
     idle: '点点小猫，把心里的话轻轻放下。',
     editing: '不着急，小猫在认真听。',
     ready: '心事收到了。按住粉色肉垫，等一个回音。',
-    holding: '就这样轻轻按着，小猫正在酝酿回音…',
-    reply: '喵，你的话，小猫听见了。',
+    holding: '继续按着，小猫正在慢慢抬起爪子…',
+    reply: '祝福送到了。松开肉垫，小猫会慢慢收爪。',
+    returning: '小猫正在慢慢收起爪子，稍等一下。',
   };
   $('guide-text').textContent = hints[phase];
   if (phase === 'ready') {
     $('paw-label').textContent = '按住肉垫 3 秒';
-    $('paw-subtitle').textContent = '松开后会重新计时';
+    $('paw-subtitle').textContent = '1 秒等待 · 2 秒抬爪';
+  } else if (phase === 'reply') {
+    $('paw-label').textContent = '松开肉垫';
+    $('paw-subtitle').textContent = '小猫会慢慢收爪';
+  } else if (phase === 'returning') {
+    $('paw-label').textContent = '正在收起爪子';
+    $('paw-subtitle').textContent = '稍等一下，喵';
   }
   if (phase === 'idle') {
     input.value = '';
@@ -57,26 +74,32 @@ function animate() {
   frame = 0;
   app.tick();
   render();
-  if (['holding', 'reply'].includes(app.state.phase)) frame = requestAnimationFrame(animate);
+  scheduleAnimation();
+}
+
+function scheduleAnimation() {
+  const { phase, replyText } = app.state;
+  const needed = ['holding', 'returning'].includes(phase) || Boolean(replyText);
+  if (needed && !frame) frame = requestAnimationFrame(animate);
+  else if (!needed && frame) { cancelAnimationFrame(frame); frame = 0; }
 }
 
 function startHold() {
   if (!app.beginHold()) return false;
   render();
-  if (!frame) frame = requestAnimationFrame(animate);
+  scheduleAnimation();
   return true;
 }
 
-function cancelHold() {
-  app.cancelHold();
+function afterRelease() {
   activePointer = null;
   activeKey = null;
-  if (app.state.phase !== 'reply' && frame) {
-    cancelAnimationFrame(frame);
-    frame = 0;
-  }
   render();
+  scheduleAnimation();
 }
+
+function cancelHold() { app.cancelHold(); afterRelease(); }
+function endHold() { app.endHold(); afterRelease(); }
 
 catButton.addEventListener('click', () => {
   if (!app.openInput()) return;
@@ -131,8 +154,7 @@ paw.addEventListener('pointermove', (event) => {
 });
 paw.addEventListener('pointerup', (event) => {
   if (event.pointerId !== activePointer) return;
-  app.endHold();
-  cancelHold();
+  endHold();
 });
 for (const type of ['pointercancel', 'lostpointercapture']) {
   paw.addEventListener(type, (event) => { if (event.pointerId === activePointer) cancelHold(); });
@@ -143,11 +165,11 @@ paw.addEventListener('keydown', (event) => {
   event.preventDefault();
   if (!event.repeat && activeKey === null && activePointer === null && startHold()) activeKey = event.key;
 });
-paw.addEventListener('keyup', (event) => { if (event.key === activeKey) { event.preventDefault(); app.endHold(); cancelHold(); } });
+paw.addEventListener('keyup', (event) => { if (event.key === activeKey) { event.preventDefault(); endHold(); } });
 paw.addEventListener('blur', () => { if (activeKey !== null) cancelHold(); });
 window.addEventListener('blur', cancelHold);
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) cancelHold();
-  else { app.tick(); render(); }
+  else { app.tick(); render(); scheduleAnimation(); }
 });
 render();

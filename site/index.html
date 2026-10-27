@@ -7,8 +7,11 @@
     <meta name="description" content="寺前有只小猫，愿意听你说。留下一句话，轻按肉垫，等一个小小的回音。" />
     <title>喵有回音 · Meow</title>
     <link rel="icon" type="image/png" href="./assets/paw.png" />
-    <link rel="preload" href="./assets/cat-rest.png" as="image" />
-    <link rel="preload" href="./assets/cat-paw.png" as="image" />
+    <link rel="preload" href="./assets/cat-frames/frame-01-start.png" as="image" />
+    <link rel="preload" href="./assets/cat-frames/frame-02-25pct.png" as="image" />
+    <link rel="preload" href="./assets/cat-frames/frame-03-50pct.png" as="image" />
+    <link rel="preload" href="./assets/cat-frames/frame-04-75pct.png" as="image" />
+    <link rel="preload" href="./assets/cat-frames/frame-05-end.png" as="image" />
     <link rel="stylesheet" href="./styles.css" />
     <script type="module" src="./app.js"></script>
   </head>
@@ -33,7 +36,7 @@
             <div class="speech" id="speech" role="status" aria-live="polite" hidden><p id="speech-text"></p><span class="speech-signature">小猫的回音</span></div>
             <span class="cat-shadow" aria-hidden="true"></span>
             <button class="cat-button" id="cat-button" type="button" aria-label="点击小猫，输入想说的话" aria-haspopup="dialog">
-              <img id="cat-image" class="cat-image" src="./assets/cat-rest.png" alt="闭着眼睛休息的三花小猫" width="490" height="490" draggable="false" />
+              <img id="cat-image" class="cat-image" src="./assets/cat-frames/frame-01-start.png" alt="闭着眼睛休息的三花小猫" width="490" height="490" draggable="false" />
             </button>
             <span class="cat-invitation" id="cat-invitation" aria-hidden="true"><span>轻点我，说句话</span><span class="tiny-arrow">↗</span></span>
             <div class="paw-wrap" id="paw-wrap" hidden>

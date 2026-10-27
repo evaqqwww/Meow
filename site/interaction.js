@@ -1,23 +1,45 @@
 import { pickBlessing } from './blessings.js';
 
 export function createInteraction({ now = () => performance.now(), random = Math.random } = {}) {
-  let state = { phase: 'idle', text: '', replyText: '', progress: 0 };
+  let state = { phase: 'idle', text: '', replyText: '', progress: 0, frameIndex: 0 };
   let holdStarted = 0;
   let replyStarted = 0;
+  let returnStarted = 0;
+  let returnFromFrame = 0;
+  let completed = false;
   const set = (changes) => { state = { ...state, ...changes }; };
   const advance = () => {
     const time = now();
     if (state.phase === 'holding') {
-      const progress = Math.min(1, Math.max(0, (time - holdStarted) / 3000));
-      set({ progress });
+      const elapsed = Math.max(0, time - holdStarted);
+      const progress = Math.min(1, elapsed / 3000);
+      const frameIndex = Math.min(4, Math.floor(Math.max(0, elapsed - 1000) / 500));
+      set({ progress, frameIndex });
       if (progress === 1) {
+        completed = true;
         replyStarted = time;
         set({ phase: 'reply', replyText: pickBlessing({ random, exclude: state.text }) });
       }
-    } else if (state.phase === 'reply' && time - replyStarted >= 1000) {
-      state = { phase: 'idle', text: '', replyText: '', progress: 0 };
+    }
+    if (completed && state.replyText && time - replyStarted >= 1000) set({ replyText: '' });
+    if (state.phase === 'returning') {
+      const frameIndex = Math.max(0, returnFromFrame - Math.floor(Math.max(0, time - returnStarted) / 500));
+      set({ frameIndex });
+      if (frameIndex === 0) {
+        if (!completed) set({ phase: 'ready' });
+        else if (!state.replyText) {
+          state = { phase: 'idle', text: '', replyText: '', progress: 0, frameIndex: 0 };
+          completed = false;
+        }
+      }
     }
     return { ...state };
+  };
+  const reverse = () => {
+    if (!['holding', 'reply'].includes(state.phase)) return;
+    returnStarted = now();
+    returnFromFrame = state.frameIndex;
+    set({ phase: returnFromFrame > 0 ? 'returning' : 'ready', progress: 0 });
   };
 
   return {
@@ -40,16 +62,17 @@ export function createInteraction({ now = () => performance.now(), random = Math
     beginHold() {
       if (state.phase !== 'ready') return false;
       holdStarted = now();
-      set({ phase: 'holding', progress: 0 });
+      completed = false;
+      set({ phase: 'holding', progress: 0, frameIndex: 0, replyText: '' });
       return true;
     },
     cancelHold() {
-      if (state.phase === 'holding') set({ phase: 'ready', progress: 0 });
+      reverse();
     },
     endHold() {
-      if (state.phase === 'holding') {
+      if (['holding', 'reply'].includes(state.phase)) {
         advance();
-        if (state.phase === 'holding') set({ phase: 'ready', progress: 0 });
+        reverse();
       }
     },
     tick: advance,
