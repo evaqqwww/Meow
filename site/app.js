@@ -19,6 +19,7 @@ let frame = 0;
 let previousPhase = '';
 let previousFrame = -1;
 let previousReply = null;
+let inputOpeningAnimation = null;
 
 function render() {
   const { phase, replyText, progress, frameIndex } = app.state;
@@ -99,12 +100,44 @@ function afterRelease() {
 function cancelHold() { app.cancelHold(); afterRelease(); }
 function endHold() { app.endHold(); afterRelease(); }
 
-catButton.addEventListener('click', () => {
+function cancelInputOpening() {
+  if (!inputOpeningAnimation) return;
+  const animation = inputOpeningAnimation;
+  inputOpeningAnimation = null;
+  animation.cancel();
+  app.cancelInput();
+  render();
+}
+
+catButton.addEventListener('click', async () => {
   if (!app.openInput()) return;
   input.value = app.state.text;
   $('character-count').textContent = String(input.value.length);
   $('input-error').textContent = '';
   render();
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const animation = catButton.animate([
+      { scale: 1 }, { scale: .98, offset: .45 }, { scale: 1 },
+    ], { duration: 250, easing: 'ease-in-out' });
+    inputOpeningAnimation = animation;
+    try {
+      await animation.finished;
+    } catch {
+      if (inputOpeningAnimation === animation) {
+        inputOpeningAnimation = null;
+        app.cancelInput();
+        render();
+      }
+      return;
+    }
+    if (inputOpeningAnimation !== animation) return;
+    inputOpeningAnimation = null;
+  }
+  if (document.hidden || app.state.phase !== 'editing') {
+    app.cancelInput();
+    render();
+    return;
+  }
   dialog.showModal();
   input.focus();
 });
@@ -165,9 +198,9 @@ paw.addEventListener('keydown', (event) => {
 });
 paw.addEventListener('keyup', (event) => { if (event.key === activeKey) { event.preventDefault(); endHold(); } });
 paw.addEventListener('blur', () => { if (activeKey !== null) cancelHold(); });
-window.addEventListener('blur', cancelHold);
+window.addEventListener('blur', () => { cancelInputOpening(); cancelHold(); });
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) cancelHold();
+  if (document.hidden) { cancelInputOpening(); cancelHold(); }
   else { app.tick(); render(); scheduleAnimation(); }
 });
 render();
