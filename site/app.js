@@ -1,4 +1,4 @@
-import { createInteraction } from './interaction.js';
+import { createInteraction, WAIT_DURATION_MS, ANIMATION_DURATION_MS, HOLD_DURATION_MS } from './interaction.js';
 
 const app = createInteraction();
 const $ = (id) => document.getElementById(id);
@@ -6,6 +6,7 @@ const scene = $('scene');
 const catButton = $('cat-button');
 const catImage = $('cat-image');
 const paw = $('paw-button');
+paw.setAttribute('aria-label', `连续按住肉垫${HOLD_DURATION_MS / 1000}秒，听小猫说话`);
 const dialog = $('message-dialog');
 const input = $('message-input');
 const catFrames = [
@@ -24,7 +25,8 @@ function render() {
   scene.dataset.phase = phase;
   $('ring-progress').style.strokeDashoffset = String(1 - progress);
   if (phase === 'holding') {
-    $('paw-label').textContent = `再等 ${Math.ceil((1 - progress) * 3)} 秒`;
+    const remaining = Math.ceil((1 - progress) * HOLD_DURATION_MS / 100) / 10;
+    $('paw-label').textContent = `再等 ${remaining.toFixed(1)} 秒`;
   }
   if (frameIndex !== previousFrame) {
     previousFrame = frameIndex;
@@ -49,17 +51,17 @@ function render() {
     idle: '点点小猫，把心里的话轻轻放下。',
     editing: '不着急，小猫在认真听。',
     ready: '心事收到了。按住粉色肉垫，等一个回音。',
-    holding: '继续按着，小猫正在慢慢抬起爪子…',
-    reply: '祝福送到了。松开肉垫，小猫会慢慢收爪。',
-    returning: '小猫正在慢慢收起爪子，稍等一下。',
+    holding: '继续按着，小猫正在抬起爪子…',
+    reply: '祝福送到了。松开肉垫，小猫会收起爪子。',
+    returning: '小猫正在收起爪子，稍等一下。',
   };
   $('guide-text').textContent = hints[phase];
   if (phase === 'ready') {
-    $('paw-label').textContent = '按住肉垫 3 秒';
-    $('paw-subtitle').textContent = '1 秒等待 · 2 秒抬爪';
+    $('paw-label').textContent = `按住肉垫 ${HOLD_DURATION_MS / 1000} 秒`;
+    $('paw-subtitle').textContent = `${WAIT_DURATION_MS / 1000} 秒等待 · ${ANIMATION_DURATION_MS / 1000} 秒抬爪`;
   } else if (phase === 'reply') {
     $('paw-label').textContent = '松开肉垫';
-    $('paw-subtitle').textContent = '小猫会慢慢收爪';
+    $('paw-subtitle').textContent = '小猫会收起爪子';
   } else if (phase === 'returning') {
     $('paw-label').textContent = '正在收起爪子';
     $('paw-subtitle').textContent = '稍等一下，喵';

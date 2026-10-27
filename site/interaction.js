@@ -1,5 +1,10 @@
 import { pickBlessing } from './blessings.js';
 
+export const WAIT_DURATION_MS = 300;
+export const ANIMATION_DURATION_MS = 800;
+export const HOLD_DURATION_MS = WAIT_DURATION_MS + ANIMATION_DURATION_MS;
+const FRAME_DURATION_MS = ANIMATION_DURATION_MS / 4;
+
 export function createInteraction({ now = () => performance.now(), random = Math.random } = {}) {
   let state = { phase: 'idle', text: '', replyText: '', progress: 0, frameIndex: 0 };
   let holdStarted = 0;
@@ -12,8 +17,8 @@ export function createInteraction({ now = () => performance.now(), random = Math
     const time = now();
     if (state.phase === 'holding') {
       const elapsed = Math.max(0, time - holdStarted);
-      const progress = Math.min(1, elapsed / 3000);
-      const frameIndex = Math.min(4, Math.floor(Math.max(0, elapsed - 1000) / 500));
+      const progress = Math.min(1, elapsed / HOLD_DURATION_MS);
+      const frameIndex = Math.min(4, Math.floor(Math.max(0, elapsed - WAIT_DURATION_MS) / FRAME_DURATION_MS));
       set({ progress, frameIndex });
       if (progress === 1) {
         completed = true;
@@ -23,7 +28,7 @@ export function createInteraction({ now = () => performance.now(), random = Math
     }
     if (completed && state.replyText && time - replyStarted >= 1000) set({ replyText: '' });
     if (state.phase === 'returning') {
-      const frameIndex = Math.max(0, returnFromFrame - Math.floor(Math.max(0, time - returnStarted) / 500));
+      const frameIndex = Math.max(0, returnFromFrame - Math.floor(Math.max(0, time - returnStarted) / FRAME_DURATION_MS));
       set({ frameIndex });
       if (frameIndex === 0) {
         if (!completed) set({ phase: 'ready' });
